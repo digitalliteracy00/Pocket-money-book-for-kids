@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>반짝반짝 용돈 기입장</title>
+    <title>반짝반짝 용돈 기입장 퀘스트</title>
     <script src="https://cdn.tailwindcss.com/"></script>
     <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
     <style>
@@ -63,8 +63,6 @@
             transform: scale(1.05);
         }
         .hidden { display: none !important; }
-        
-        /* 커스텀 모달 스타일 */
         .quiz-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -80,7 +78,7 @@
     <div class="flex justify-between items-center mb-4">
         <div class="flex items-center gap-2">
             <span class="text-4xl">🐷</span>
-            <h1 class="text-4xl text-orange-600">용돈 기입장</h1>
+            <h1 class="text-4xl text-orange-600">반짝반짝 용돈 기입장</h1>
         </div>
         <div class="text-xl bg-white px-4 py-2 rounded-full border-2 border-yellow-400">
             날짜: 5월 <span id="current-day">1</span>일
@@ -88,21 +86,27 @@
     </div>
 
     <div id="game-screen">
-        <div class="bg-white p-4 rounded-2xl mb-4 border-2 border-yellow-200 shadow-inner">
-            <p class="text-center text-lg mb-3 text-orange-500">👇 오늘 있었던 일을 누르고 [남은 돈]을 계산해 보세요!</p>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <button onclick="openQuiz('엄마 심부름', 1000, 0)" class="btn-action bg-blue-400 text-white p-2 rounded-xl text-lg">🧹 심부름 (+1000원)</button>
-                <button onclick="openQuiz('맛있는 사탕', 0, 500)" class="btn-action bg-pink-400 text-white p-2 rounded-xl text-lg">🍭 사탕사기 (-500원)</button>
-                <button onclick="openQuiz('공책과 연필', 0, 1000)" class="btn-action bg-green-400 text-white p-2 rounded-xl text-lg">✏️ 학용품 (-1000원)</button>
-                <button onclick="openQuiz('칭찬 용돈', 2000, 0)" class="btn-action bg-yellow-500 text-white p-2 rounded-xl text-lg">🌟 칭찬 (+2000원)</button>
+        <div class="bg-white p-5 rounded-2xl mb-4 border-2 border-yellow-200 shadow-inner text-center">
+            <p class="text-xl mb-4 text-orange-500">✨ 오늘 하루는 어떤 일이 일어날까요?</p>
+            
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button onclick="nextEvent()" id="event-btn" class="btn-action bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 rounded-2xl text-xl font-bold">
+                    🎲 주사위 굴리기 (다음 날로!)
+                </button>
+                
+                <button onclick="doChore()" id="chore-btn" class="btn-action bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-2xl text-xl font-bold">
+                    🧹 집안일 도와드리기 (+500원) <span id="chore-count">(0/5)</span>
+                </button>
             </div>
+            
+            <p id="alert-msg" class="text-red-500 text-lg mt-3 font-bold h-6"></p>
         </div>
 
         <table class="diary-table mb-4">
             <thead>
                 <tr>
                     <th width="15%">날짜</th>
-                    <th width="35%">무엇을 샀나요?</th>
+                    <th width="35%">무엇을 했나요?</th>
                     <th width="15%">받은 돈</th>
                     <th width="15%">쓴 돈</th>
                     <th width="20%">남은 돈</th>
@@ -112,31 +116,33 @@
         </table>
 
         <div class="bg-orange-100 p-4 rounded-2xl border-2 border-orange-300 flex justify-around items-center">
-            <div class="text-xl">💰 총 받은 돈: <span id="total-income" class="text-blue-600">0</span>원</div>
+            <div class="text-xl">💰 총 받은 돈: <span id="total-income" class="text-blue-600">5,000</span>원</div>
             <div class="text-xl">💸 총 쓴 돈: <span id="total-expense" class="text-red-600">0</span>원</div>
-            <div class="text-xl font-bold">✨ 지금 지갑에 남은 돈: <span id="total-balance" class="text-orange-700">0</span>원</div>
+            <div class="text-xl font-bold">✨ 지금 지갑에 남은 돈: <span id="total-balance" class="text-orange-700">5,000</span>원</div>
         </div>
 
-        <button onclick="showReview()" id="finish-btn" class="hidden w-full mt-6 py-4 bg-orange-500 text-white text-2xl rounded-3xl btn-action">📊 한 달 결산하고 반성하기</button>
+        <button onclick="showReview()" id="finish-btn" class="hidden w-full mt-6 py-4 bg-orange-500 text-white text-2xl rounded-3xl btn-action">📊 30일 끝! 한 달 결산하러 가기 🚀</button>
     </div>
 
     <div id="review-screen" class="hidden space-y-6">
         <h2 class="text-3xl text-center text-orange-600 mb-6">📔 나의 한 달 마음 기록장</h2>
+
         <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300">
             <h3 class="text-2xl mb-4">⭐ 나는 무엇에 돈을 많이 썼을까요? (하나 선택)</h3>
-            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+            <div class="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 <button class="category-btn" onclick="selectCate(this)">🍰<br>간식</button>
                 <button class="category-btn" onclick="selectCate(this)">🧸<br>장난감</button>
-                <button class="category-btn" onclick="selectCate(this)">✏️<br>학용품</button>
-                <button class="category-btn" onclick="selectCate(this)">🎁<br>선물</button>
-                <button class="category-btn" onclick="selectCate(this)">🐖<br>저금</button>
+                <button class="category-btn" onclick="selectCate(this)">✏️<br>학용품 / 책</button>
+                <button class="category-btn" onclick="selectCate(this)">🎁<br>친구 선물</button>
                 <button class="category-btn" onclick="selectCate(this)">❓<br>기타</button>
             </div>
         </div>
+
         <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300 text-center">
-            <h3 class="text-2xl mb-2">💰 지금 지갑에 진짜 남은 돈은?</h3>
-            <div class="text-4xl text-blue-600 underline" id="final-balance-display">0원</div>
+            <h3 class="text-2xl mb-2">💰 지금 내 지갑에 남은 최종 돈은?</h3>
+            <div class="text-4xl text-blue-600 underline" id="final-balance-display">5,000원</div>
         </div>
+
         <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300">
             <h3 class="text-2xl mb-4 text-center">💡 나는 합리적으로 소비했나요?</h3>
             <div class="flex justify-around">
@@ -145,20 +151,35 @@
                 <button onclick="selectHappy(this)" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100"><span class="text-6xl">😢</span><span>생각해봐요!</span></button>
             </div>
         </div>
+
         <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300">
-            <h3 class="text-2xl mb-4">✍️ 한 줄 느낌 고르기</h3>
+            <h3 class="text-2xl mb-4">✍️ 나의 한 달 소감 고르기</h3>
             <div class="flex flex-col gap-2" id="feeling-list"></div>
         </div>
-        <button onclick="location.reload()" class="w-full py-4 bg-blue-500 text-white text-2xl rounded-3xl btn-action">🔄 처음부터 다시 하기</button>
+
+        <button onclick="triggerComplete()" id="complete-trigger-btn" class="hidden w-full py-4 bg-emerald-500 text-white text-2xl rounded-3xl btn-action">🎉 작성 완료하기 🎉</button>
+    </div>
+
+    <div id="complete-screen" class="hidden quiz-overlay">
+        <div class="bg-white p-8 rounded-3xl border-8 border-emerald-400 max-w-md w-full shadow-2xl text-center mx-4">
+            <span class="text-7xl block mb-4">👑</span>
+            <h2 class="text-4xl text-emerald-600 mb-2">참 잘했어요!</h2>
+            <p class="text-xl text-gray-600 mb-6">첫 한 달 용돈기입장 기록 미션을<br>성공적으로 모두 완료했습니다! 🥳</p>
+            
+            <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200 text-lg text-left text-emerald-800 space-y-1 mb-6">
+                <div>🎯 5월 한 달 동안의 똑똑한 기록 완료</div>
+                <div>지갑 주인의 경제 점수: <span class="font-bold text-xl text-orange-500">100점 만점에 100점! 💯</span></div>
+            </div>
+
+            <button onclick="location.reload()" class="w-full py-4 bg-orange-400 text-white text-xl rounded-2xl btn-action">다시 처음부터 하기 🔄</button>
+        </div>
     </div>
 </div>
 
 <div id="quiz-modal" class="quiz-overlay hidden">
     <div class="bg-white p-6 rounded-3xl border-4 border-yellow-400 max-w-sm w-full shadow-2xl text-center mx-4 relative">
-        <button onclick="closeQuiz()" class="absolute top-3 right-4 text-2xl text-gray-400 hover:text-black">✕</button>
         <h3 class="text-2xl text-orange-500 mb-2">❓ 남은 돈은 얼마일까요?</h3>
-        <div id="quiz-question" class="bg-yellow-50 p-3 rounded-xl text-lg mb-4 border border-yellow-200">
-            </div>
+        <div id="quiz-question" class="bg-yellow-50 p-3 rounded-xl text-lg mb-4 border border-yellow-200"></div>
         
         <div class="mb-4">
             <input type="text" id="quiz-input" readonly class="w-full text-center text-3xl p-2 bg-gray-100 border-2 border-orange-300 rounded-xl font-bold text-orange-600" placeholder="0">
@@ -169,8 +190,8 @@
             <button onclick="pressNum(1000)" class="bg-gray-200 p-2 rounded-xl text-lg font-bold">+1000</button>
             <button onclick="pressNum(500)" class="bg-gray-200 p-2 rounded-xl text-lg font-bold">+500</button>
             <button onclick="pressNum(100)" class="bg-gray-200 p-2 rounded-xl text-lg font-bold">+100</button>
-            <button onclick="pressNum(0)" class="bg-orange-100 p-2 rounded-xl text-lg font-bold col-span-2 text-orange-700">지우기</button>
-            <button onclick="pressNum(-1)" class="bg-gray-300 p-2 rounded-xl text-lg font-bold">← 하나 지우기</button>
+            <button onclick="pressNum(0)" class="bg-orange-100 p-2 rounded-xl text-lg font-bold col-span-2 text-orange-700">새로 쓰기</button>
+            <button onclick="pressNum(-1)" class="bg-gray-300 p-2 rounded-xl text-lg font-bold">← 빼기</button>
         </div>
 
         <button onclick="checkAnswer()" class="w-full py-3 bg-orange-500 text-white text-xl rounded-2xl btn-action">정답 제출하기! 🚀</button>
@@ -180,27 +201,43 @@
 <script>
     let day = 1;
     let records = [];
-    let incomeSum = 0;
+    let incomeSum = 5000; // 시작 용돈 5000원 반영
     let expenseSum = 0;
-    let currentBalance = 0; 
-    
-    // 현재 진행 중인 퀴즈 데이터 저장용
+    let currentBalance = 5000; 
+    let choreCount = 0; // 집안일 횟수 체크
+
     let currentQuiz = { desc: '', inc: 0, exp: 0, answer: 0 };
+
+    // 지출 랜덤 이벤트 목록 (다양한 항목 구성)
+    const expenseEvents = [
+        { desc: "🧁 달콤하고 맛있는 컵케이크 사 먹기", exp: 1000 },
+        { desc: "🧸 문방구에서 귀여운 열쇠고리 인형 사기", exp: 1500 },
+        { desc: "✏️ 수업 시간에 쓸 지우개랑 연필 사기", exp: 500 },
+        { desc: "📖 그림이 가득 찬 재미있는 동화책 사기", exp: 2000 },
+        { desc: "🎁 단짝 친구 생일 파티에 줄 선물 사기", exp: 2000 },
+        { desc: "🍭 새콤달콤한 사탕이랑 젤리 사 먹기", exp: 500 },
+        { desc: "🎨 미술 시간에 쓸 알록달록 크레파스 사기", exp: 1000 },
+        { desc: "🍦 시원하고 달달한 아이스크림 간식 먹기", exp: 1000 }
+    ];
 
     const feelings = [
         "🥰 돈을 아껴 써서 뿌듯하고 기분이 좋아요!",
-        "🛍️ 사고 싶은 걸 직접 사서 행복했어요!",
-        "🐖 다음 달에는 저금을 더 많이 하고 싶어요!",
-        "😢 돈이 부족해서 조금 속상했어요.",
+        "🛍️ 사고 싶은 걸 직접 내 돈으로 사서 행복했어요!",
+        "🐖 다음 달에는 집안일을 더 돕고 저금도 많이 할래요!",
+        "😢 돈이 부족해서 집안일로 채우느라 조금 힘들었어요.",
         "📝 앞으로는 계획을 세워서 똑똑하게 쓸래요!"
     ];
+
+    // 시작하자마자 첫 줄에 기본 용돈 5000원 채워서 표시
+    records.push({ day: 0, desc: "🎉 첫 생활 시작 용돈", income: 5000, expense: 0, bal: 5000 });
 
     function initTable() {
         const body = document.getElementById('ledger-body');
         body.innerHTML = '';
-        for (let i = 0; i < 10; i++) {
+        // 최신 기록을 포함하여 총 11줄 공간 제공 (기본용돈 1줄 + 활동 10줄)
+        for (let i = 0; i < 11; i++) {
             const row = `<tr>
-                <td>${records[i] ? '5 / ' + records[i].day : ''}</td>
+                <td>${records[i] ? (records[i].day === 0 ? '시작' : '5 / ' + records[i].day) : ''}</td>
                 <td>${records[i] ? records[i].desc : ''}</td>
                 <td class="text-blue-500">${records[i] && records[i].income > 0 ? records[i].income.toLocaleString() + '원' : ''}</td>
                 <td class="text-red-500">${records[i] && records[i].expense > 0 ? records[i].expense.toLocaleString() + '원' : ''}</td>
@@ -210,28 +247,61 @@
         }
     }
 
-    // 퀴즈 모달 열기
-    function openQuiz(desc, inc, exp) {
-        if (records.length >= 10) {
-            alert("기입장이 꽉 찼어요! 결산을 시작해봐요.");
-            return;
-        }
-
-        let targetAns = currentBalance + inc - exp;
-        if (targetAns < 0) {
-            alert("❌ 지갑에 돈이 부족해서 살 수 없어요! 먼저 용돈을 벌어보세요.");
-            return;
-        }
-
-        // 퀴즈 데이터 셋팅
-        currentQuiz = { desc: desc, inc: inc, exp: exp, answer: targetAns };
+    // 주사위 굴려 랜덤 지출 발생
+    function nextEvent() {
+        document.getElementById('alert-msg').innerText = "";
         
-        // 질문 텍스트 생성
-        let qText = `지갑에 원래 <b>${currentBalance.toLocaleString()}원</b>이 있었어요.<br>`;
-        if (inc > 0) {
-            qText += `💰 <b>${desc}</b>으로 <b>+${inc.toLocaleString()}원</b>이 더 생겼네요!`;
+        if (records.length >= 11) {
+            document.getElementById('event-btn').disabled = true;
+            document.getElementById('finish-btn').classList.remove('hidden');
+            document.getElementById('alert-msg').innerText = "기입장이 꽉 찼어요! 결산 버튼을 눌러보세요.";
+            return;
+        }
+
+        // 무작위 지출 하나 뽑기
+        let randomItem = expenseEvents[Math.floor(Math.random() * expenseEvents.length)];
+        let targetAns = currentBalance - randomItem.exp;
+
+        // 지갑에 돈이 부족할 때 예외처리 ➡️ 집안일 권유!
+        if (targetAns < 0) {
+            document.getElementById('alert-msg').innerText = `❌ 지갑에 돈이 없어서 [${randomItem.exp}원]짜리 물건을 살 수 없어요! 집안일을 해서 돈을 벌어보세요!`;
+            return;
+        }
+
+        // 정상 진행 시 퀴즈 열기
+        currentQuiz = { desc: randomItem.desc, inc: 0, exp: randomItem.exp, answer: targetAns };
+        openQuizModal();
+    }
+
+    // 집안일 하기 버튼 실행
+    function doChore() {
+        document.getElementById('alert-msg').innerText = "";
+
+        if (records.length >= 11) {
+            document.getElementById('finish-btn').classList.remove('hidden');
+            document.getElementById('alert-msg').innerText = "기입장이 가득 차 결산할 시간이에요.";
+            return;
+        }
+
+        if (choreCount >= 5) {
+            document.getElementById('alert-msg').innerText = "⚠️ 아쉽지만 집안일은 하루에 최대 5번까지만 할 수 있어요!";
+            return;
+        }
+
+        choreCount++;
+        document.getElementById('chore-count').innerText = `(${choreCount}/5)`;
+
+        let targetAns = currentBalance + 500;
+        currentQuiz = { desc: "🧹 부모님 돕기 집안일 알바", inc: 500, exp: 0, answer: targetAns };
+        openQuizModal();
+    }
+
+    function openQuizModal() {
+        let qText = `원래 내 지갑에 <b>${currentBalance.toLocaleString()}원</b>이 들어있었어요.<br>`;
+        if (currentQuiz.inc > 0) {
+            qText += `💰 <b>${currentQuiz.desc}</b>을 해서 <b>+${currentQuiz.inc.toLocaleString()}원</b>을 벌었어요!`;
         } else {
-            qText += `💸 <b>${desc}</b>으로 <b>-${exp.toLocaleString()}원</b>을 썼어요!`;
+            qText += `💸 <b>${currentQuiz.desc}</b>으로 <b>-${currentQuiz.exp.toLocaleString()}원</b>을 썼어요!`;
         }
 
         document.getElementById('quiz-question').innerHTML = qText;
@@ -239,19 +309,13 @@
         document.getElementById('quiz-modal').classList.remove('hidden');
     }
 
-    function closeQuiz() {
-        document.getElementById('quiz-modal').classList.add('hidden');
-    }
-
-    // 숫자 패드 버튼 조작
     function pressNum(val) {
         let input = document.getElementById('quiz-input');
         let currentVal = parseInt(input.value) || 0;
 
         if (val === 0) {
-            input.value = '0'; // 전체 지우기
+            input.value = '0';
         } else if (val === -1) {
-            // 한 단계 뒤로 되돌리기 (예: 1500 -> 1000, 500 -> 0)
             if (currentVal >= 1000) input.value = currentVal - 1000;
             else if (currentVal >= 500) input.value = currentVal - 500;
             else if (currentVal >= 100) input.value = currentVal - 100;
@@ -261,18 +325,17 @@
         }
     }
 
-    // 답 체크하기
     function checkAnswer() {
         let userAns = parseInt(document.getElementById('quiz-input').value) || 0;
 
         if (userAns === currentQuiz.answer) {
-            alert("🎉 딩동댕! 정답이에요! 직접 계산도 참 잘하네요! 👍");
+            alert("🎉 딩동댕! 대단해요 정답입니다! 남은 돈을 완벽하게 맞췄어요! 👍");
         } else {
-            alert(`😢 앗, 틀렸어요! 정답은 [ ${currentQuiz.answer.toLocaleString()}원 ] 입니다. 다음 번에 맞추면 되죠! 함께 적어봐요.`);
+            alert(`😢 앗 아쉬워요! \n정답은 [ ${currentQuiz.answer.toLocaleString()}원 ] 입니다. 제가 정답을 장부에 예쁘게 적어둘게요!`);
         }
 
-        addRecord(currentQuiz.desc, currentQuiz.inc, currentQuiz.exp, currentQuiz.answer);
-        closeQuiz();
+        addRecord(currentQuiz.desc, currentQuiz.inc, currentQuiz.currentChore ? 0 : currentQuiz.exp, currentQuiz.answer);
+        document.getElementById('quiz-modal').classList.add('hidden');
     }
 
     function addRecord(desc, inc, exp, finalBal) {
@@ -281,18 +344,14 @@
         currentBalance = finalBal;
 
         records.push({ day: day, desc: desc, income: inc, expense: exp, bal: currentBalance });
+        day += Math.floor(Math.random() * 3) + 1; // 날짜가 랜덤하게 흐름
         
-        day++;
         updateUI();
         initTable();
-
-        if (records.length >= 5) {
-            document.getElementById('finish-btn').classList.remove('hidden');
-        }
     }
 
     function updateUI() {
-        document.getElementById('current-day').innerText = day;
+        document.getElementById('current-day').innerText = day > 30 ? 30 : day;
         document.getElementById('total-income').innerText = incomeSum.toLocaleString();
         document.getElementById('total-expense').innerText = expenseSum.toLocaleString();
         document.getElementById('total-balance').innerText = currentBalance.toLocaleString();
@@ -310,19 +369,39 @@
         });
     }
 
+    // 최종 완료 트리거 검사용 변수들
+    let selectedElements = { cate: false, happy: false, feel: false };
+
+    function checkReviewCompleted() {
+        if (selectedElements.cate && selectedElements.happy && selectedElements.feel) {
+            document.getElementById('complete-trigger-btn').classList.remove('hidden');
+        }
+    }
+
     function selectCate(btn) {
         document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        selectedElements.cate = true;
+        checkReviewCompleted();
     }
 
     function selectHappy(btn) {
         document.querySelectorAll('#review-screen .flex button').forEach(b => b.style.opacity = '0.5');
         btn.style.opacity = '1';
+        selectedElements.happy = true;
+        checkReviewCompleted();
     }
 
     function selectFeel(btn) {
         document.querySelectorAll('#feeling-list button').forEach(b => b.classList.remove('bg-yellow-100', 'border-yellow-400'));
         btn.classList.add('bg-yellow-100', 'border-yellow-400');
+        selectedElements.feel = true;
+        checkReviewCompleted();
+    }
+
+    // 작성 완료 성공 카드 띄우기
+    function triggerComplete() {
+        document.getElementById('complete-screen').classList.remove('hidden');
     }
 
     initTable();
