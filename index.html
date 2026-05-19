@@ -1,545 +1,255 @@
-<!doctype html>
-<html lang="ko" class="h-full">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>반짝반짝 용돈 기입장 게임 ✨</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Jua&amp;family=Noto+Sans+KR:wght@400;700&amp;display=swap" rel="stylesheet">
-  <style>
-    html, body { height: 100%; margin: 0; background-color: #FFFDE7; }
-    * { font-family: 'Noto Sans KR', sans-serif; }
-    .title-font { font-family: 'Jua', sans-serif; }
-    .income-row { color: #2563eb; }
-    .expense-row { color: #dc2626; }
-    .pocket-card { transition: all 0.3s ease; }
-    .pocket-card:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
-    @keyframes coinDrop { 0%{transform:translateY(-20px);opacity:0} 100%{transform:translateY(0);opacity:1} }
-    .coin-anim { animation: coinDrop 0.4s ease-out; }
-    .btn-bounce:active { transform: scale(0.95); }
-    .ledger-scroll { max-height: 320px; overflow-y: auto; }
-    .ledger-scroll::-webkit-scrollbar { width: 6px; }
-    .ledger-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    @keyframes shimmer { 0%{opacity:0.5;transform:scale(0.98)} 50%{opacity:1;transform:scale(1.02)} 100%{opacity:0.5;transform:scale(0.98)} }
-    .shimmer { animation: shimmer 1.5s ease-in-out infinite; }
-    @keyframes glow { 0%,100%{box-shadow:0 0 8px rgba(239,68,68,0.4)} 50%{box-shadow:0 0 20px rgba(239,68,68,0.8)} }
-    .glow-warn { animation: glow 1.2s ease-in-out infinite; }
-    
-    @media (max-width: 480px) {
-      .title-font { font-size: 1.3rem; }
-      .text-sm { font-size: 0.8rem !important; }
-      .text-lg { font-size: 1rem !important; }
-      .text-xl { font-size: 1.2rem !important; }
-      .text-2xl { font-size: 1.4rem !important; }
-    }
-  </style>
- </head>
- <body class="w-full overflow-auto p-3 md:p-5">
-  <div id="app" class="max-w-5xl mx-auto w-full flex flex-col gap-4">
-   
-   <!-- 헤더 -->
-   <header class="flex flex-col sm:flex-row items-center justify-between rounded-3xl px-5 py-3 shadow-md border-4 border-yellow-300 bg-white gap-3">
-    <h1 class="title-font text-2xl sm:text-3xl text-amber-600">✨ 반짝반짝 용돈 기입장</h1>
-    <div class="flex items-center gap-3">
-      <span id="dateDisplay" class="text-base font-bold text-gray-700 bg-amber-100 px-3 py-1 rounded-full">5월 1일</span> 
-      <span id="walletDisplay" class="text-base font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full">💰 지갑: 0원</span>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>반짝반짝 용돈 기입장</title>
+    <script src="https://cdn.tailwindcss.com/"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Jua', sans-serif;
+            background-color: #fdf6e3;
+            color: #444;
+            padding: 10px;
+        }
+        .diary-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fffde7;
+            border: 6px solid #ffcc00;
+            border-radius: 40px;
+            padding: 20px;
+            box-shadow: 0 10px 0 #e6b800;
+        }
+        .diary-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .diary-table th {
+            background-color: #ffe082;
+            padding: 12px;
+            border: 2px solid #ffcc00;
+            font-size: 1.2rem;
+        }
+        .diary-table td {
+            border: 2px solid #fff59d;
+            padding: 10px;
+            text-align: center;
+            height: 50px;
+            font-size: 1.1rem;
+        }
+        .btn-action {
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #d97706;
+        }
+        .btn-action:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+        .category-btn {
+            border: 3px solid #fde68a;
+            border-radius: 20px;
+            padding: 10px;
+            background: white;
+        }
+        .category-btn.active {
+            background-color: #fef3c7;
+            border-color: #fbbf24;
+            transform: scale(1.05);
+        }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="diary-container">
+    <div class="flex justify-between items-center mb-4">
+        <div class="flex items-center gap-2">
+            <span class="text-4xl">🐷</span>
+            <h1 class="text-4xl text-orange-600">용돈 기입장</h1>
+        </div>
+        <div class="text-xl bg-white px-4 py-2 rounded-full border-2 border-yellow-400">
+            날짜: 5월 <span id="current-day">1</span>일
+        </div>
     </div>
-   </header>
 
-   <!-- 경고 배너 -->
-   <div id="pendingBanner" class="hidden bg-red-50 border-2 border-red-300 rounded-2xl px-4 py-2 text-center glow-warn">
-    <p class="font-bold text-red-600 text-sm sm:text-base">⚠️ 받은 돈을 주머니에 모두 나눠 담아야 다음 날로 갈 수 있어요!</p>
-   </div>
-
-   <!-- 메인 콘텐츠 영역 -->
-   <div id="main-game-layout" class="flex flex-col lg:flex-row gap-4">
-    
-    <!-- 왼쪽: 용돈기입장 내역 -->
-    <div class="lg:w-1/2 bg-white rounded-3xl shadow-md border-2 border-blue-100 flex flex-col overflow-hidden">
-     <div class="bg-blue-50 px-4 py-3 border-b border-blue-100">
-      <h2 class="title-font text-lg text-blue-700">📝 나의 용돈기입장</h2>
-     </div>
-     <div class="ledger-scroll p-3 flex-1 min-h-[250px]">
-      <table class="w-full text-sm">
-       <thead>
-        <tr class="text-gray-500 border-b pb-2">
-         <th class="py-1 text-left">날짜</th>
-         <th class="text-left">내용</th>
-         <th class="text-right">쓴 돈 / 번 돈</th>
-        </tr>
-       </thead>
-       <tbody id="ledgerBody"></tbody>
-      </table>
-     </div>
-    </div>
-
-    <!-- 오른쪽: 상태 및 선택 창 -->
-    <div class="lg:w-1/2 flex flex-col gap-4">
-     
-     <!-- 저금통 주머니 현황 -->
-     <div id="panelAssets" class="bg-white rounded-3xl shadow-md border-2 border-green-100 p-4 flex flex-col gap-3">
-      <h2 class="title-font text-lg text-green-700">🐷 나의 돈 주머니</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-       <div class="pocket-card bg-gradient-to-r from-yellow-50 to-amber-50 rounded-2xl p-3 border border-yellow-200">
-        <div class="flex justify-between items-center"><span class="font-bold text-amber-700 text-base">🛒 내 지갑 (소비)</span> <span id="assetWallet" class="font-bold text-lg text-amber-800">0원</span></div>
-        <p class="text-xs text-gray-500 mt-1">과자나 학용품을 살 수 있는 돈</p>
-       </div>
-       <div class="pocket-card bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-3 border border-pink-200">
-        <div class="flex justify-between items-center"><span class="font-bold text-pink-700 text-base">🐖 저축통장 (모으기)</span> <span id="assetSaving" class="font-bold text-lg text-pink-800">0원</span></div>
-        <p class="text-xs text-gray-500 mt-1">차곡차곡 모으는 보물 주머니</p>
-       </div>
-      </div>
-     </div>
-
-     <!-- 용돈 분배 주머니 -->
-     <div id="panelDistribute" class="hidden bg-white rounded-3xl shadow-lg border-4 border-purple-300 p-4 flex flex-col gap-3">
-      <div class="text-center shimmer">
-       <h2 class="title-font text-xl text-purple-700">🪙 용돈 분배 주머니</h2>
-       <p class="text-xs sm:text-sm text-purple-600">돈을 어디에 나누어 담을까요?</p>
-      </div>
-      <div class="bg-purple-50 rounded-2xl p-3 text-center border border-purple-200 shadow-inner">
-       <p class="text-xs text-gray-600">🎁 나눠 담을 금액</p>
-       <p id="distAmountLabel" class="title-font text-3xl text-purple-700 font-bold">5,000원</p>
-      </div>
-      <div class="space-y-3">
-       <div class="bg-gradient-to-r from-yellow-100 to-amber-100 rounded-2xl p-3 border-2 border-yellow-300 flex items-center justify-between">
-        <div>
-         <p class="title-font text-base font-bold text-amber-900">🛒 내 지갑에 넣기</p>
-         <div class="flex gap-1 mt-1">
-          <button onclick="adjustDist('wallet',-500)" class="btn-bounce w-8 h-8 bg-white rounded-full font-bold text-amber-900 shadow">−</button>
-          <button onclick="adjustDist('wallet',500)" class="btn-bounce w-8 h-8 bg-white rounded-full font-bold text-amber-900 shadow">+</button>
-         </div>
-        </div>
-        <p id="distWallet" class="title-font text-xl font-bold text-amber-900">0원</p>
-       </div>
-       <div class="bg-gradient-to-r from-pink-100 to-rose-100 rounded-2xl p-3 border-2 border-pink-300 flex items-center justify-between">
-        <div>
-         <p class="title-font text-base font-bold text-pink-900">🐖 저축통장에 넣기</p>
-         <div class="flex gap-1 mt-1">
-          <button onclick="adjustDist('saving',-500)" class="btn-bounce w-8 h-8 bg-white rounded-full font-bold text-pink-900 shadow">−</button>
-          <button onclick="adjustDist('saving',500)" class="btn-bounce w-8 h-8 bg-white rounded-full font-bold text-pink-900 shadow">+</button>
-         </div>
-        </div>
-        <p id="distSaving" class="title-font text-xl font-bold text-pink-900">0원</p>
-       </div>
-      </div>
-      <div id="distRemaining" class="text-center py-2 rounded-xl font-bold text-base bg-white border-2 border-red-400 text-red-600">남은 금액: 5,000원</div>
-      <button id="distConfirmBtn" onclick="confirmDistribution()" class="w-full py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-300 text-white font-bold rounded-2xl btn-bounce shadow-md" disabled>✨ 준비 끝! ✨</button>
-     </div>
-
-     <!-- 쇼핑하기 (소비) 패널 -->
-     <div id="panelSpend" class="hidden bg-white rounded-3xl shadow-lg border-4 border-orange-300 p-4 flex flex-col gap-3">
-      <div class="text-center">
-       <h2 class="title-font text-xl text-orange-700">🛍️ 신나는 문방구 쇼핑</h2>
-       <p class="text-xs text-orange-600">내 지갑의 돈으로 살 수 있어요! (지갑: <span id="spendWalletDisplay" class="font-bold">0원</span>)</p>
-       <p class="text-sm text-red-600 mt-1 font-bold">🛒 바구니 합계: <span id="spendCartTotal" class="text-lg">0원</span></p>
-      </div>
-      <div class="space-y-2 max-h-[200px] overflow-y-auto p-1" id="spendItemList"></div>
-      <div class="flex gap-2">
-       <button onclick="checkout()" class="flex-1 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-2xl btn-bounce shadow-md">✅ 계산하기</button>
-       <button onclick="closeSpendPanel()" class="py-3 px-4 bg-gray-400 text-white font-bold rounded-2xl btn-bounce shadow-md">닫기</button>
-      </div>
-     </div>
-
-     <!-- 하단 조작 버튼 바 -->
-     <div id="actionBar" class="flex gap-2">
-      <button id="btnChore" onclick="doChore()" class="btn-bounce flex-1 py-3 bg-green-500 text-white title-font rounded-2xl text-base hover:bg-green-600 shadow-md">🧹 집안일 돕기 (+500원)</button> 
-      <button id="btnSpend" onclick="showSpendPanel()" class="btn-bounce flex-1 py-3 bg-orange-400 text-white title-font rounded-2xl text-base hover:bg-orange-500 shadow-md">🛍️ 문방구 가기</button> 
-      <button id="btnNextDay" onclick="nextDay()" class="btn-bounce flex-1 py-3 bg-blue-500 text-white title-font rounded-2xl text-base hover:bg-blue-600 shadow-md">🎲 하루 보내기</button> 
-      <button id="btnFinalReport" onclick="showReportFlow()" class="btn-bounce flex-1 py-3 bg-indigo-500 text-white title-font rounded-2xl text-base hover:bg-indigo-600 shadow-md hidden">📊 1달 결산하기</button>
-     </div>
-
-    </div>
-   </div>
-
-   <!-- 새로운 피드백 및 결산 패널 (요청하신 반성 시스템 전용) -->
-   <div id="panelReviewFlow" class="hidden bg-white rounded-3xl shadow-xl border-4 border-indigo-400 p-5 flex flex-col gap-4">
-      
-      <!-- 1단계: 1달 결산서 보기 -->
-      <div id="review-step-report" class="space-y-3">
-        <h2 class="title-font text-2xl text-indigo-700 text-center">📊 1달 동안 모은 용돈 결산서</h2>
-        <div class="bg-indigo-50 p-4 rounded-2xl border-2 border-indigo-200 text-center space-y-2">
-          <p class="text-xl font-bold text-gray-800">남은 용돈 총합: <span id="report-total-money" class="text-2xl text-indigo-600">0원</span></p>
-          <div class="grid grid-cols-2 gap-2 max-w-sm mx-auto pt-2 text-sm text-gray-700">
-            <div>🛒 지갑 잔액: <span id="report-wallet-money" class="font-bold">0원</span></div>
-            <div>🐖 통장 잔액: <span id="report-saving-money" class="font-bold">0원</span></div>
-          </div>
-          <hr class="border-indigo-200 my-2">
-          <p class="font-bold text-left text-gray-700">😋 내가 문방구에서 쓴 돈:</p>
-          <div class="flex flex-col gap-1 text-left pl-2 text-sm">
-            <div>🍰 맛있는 간식값: <span id="report-spent-snack" class="font-bold text-orange-600">0원</span></div>
-            <div>✏️ 필요한 학용품값: <span id="report-spent-school" class="font-bold text-blue-600">0원</span></div>
-            <div>🧸 신기한 장난감/수집품값: <span id="report-spent-toy" class="font-bold text-pink-600">0원</span></div>
-            <div>🚨 예기치 못한 돌발지출: <span id="report-spent-emergency" class="font-bold text-red-600">0원</span></div>
-          </div>
-        </div>
-        <button onclick="changeReviewStep(2)" class="w-full py-3 bg-indigo-500 text-white font-bold rounded-2xl title-font text-lg btn-bounce shadow-md">다음으로 넘어가기 ➡️</button>
-      </div>
-
-      <!-- 2단계: 무엇에 돈을 가장 많이 썼는가? -->
-      <div id="review-step-q1" class="hidden text-center space-y-4">
-        <h2 class="title-font text-2xl text-amber-600">🤔 나는 이번 달에 무엇에 돈을 가장 많이 썼나요?</h2>
-        <p class="text-sm text-gray-500">(위에 있는 결산서 금액을 눈으로 보고 가장 많이 쓴 것을 직접 골라보세요!)</p>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <button onclick="selectQ1('🍰 맛있는 간식')" class="py-4 bg-orange-100 hover:bg-orange-200 border-2 border-orange-300 rounded-2xl font-bold text-lg text-orange-800 btn-bounce">🍰 맛있는 간식</button>
-          <button onclick="selectQ1('✏️ 필요한 학용품')" class="py-4 bg-blue-100 hover:bg-blue-200 border-2 border-blue-300 rounded-2xl font-bold text-lg text-blue-800 btn-bounce">✏️ 필요한 학용품</button>
-          <button onclick="selectQ1('🧸 장난감과 구경거리')" class="py-4 bg-pink-100 hover:bg-pink-200 border-2 border-pink-300 rounded-2xl font-bold text-lg text-pink-800 btn-bounce">🧸 장난감 / 뽑기</button>
-        </div>
-      </div>
-
-      <!-- 3단계: 합리적 소비 자가 진단 -->
-      <div id="review-step-q2" class="hidden text-center space-y-4">
-        <h2 class="title-font text-2xl text-green-600">💡 이번 달에 돈을 똑똑하고 합리적으로 썼나요?</h2>
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
-          <button onclick="selectQ2('yes')" class="flex-1 py-4 bg-green-100 hover:bg-green-200 border-3 border-green-400 rounded-2xl font-bold text-lg text-green-800 btn-bounce">👍 응! 꼭 필요한 곳에 알맞게 잘 썼어!</button>
-          <button onclick="selectQ2('no')" class="flex-1 py-4 bg-red-100 hover:bg-red-200 border-3 border-red-400 rounded-2xl font-bold text-lg text-red-800 btn-bounce">👎 아쉬워, 다음 달엔 더 조심해서 쓸래!</button>
-        </div>
-      </div>
-
-      <!-- 4단계: 한 줄 소감 (5개 선택지) -->
-      <div id="review-step-q3" class="hidden text-center space-y-4">
-        <h2 class="title-font text-2xl text-purple-600">🥰 이번 달의 용돈 생활을 한 줄로 말해봐요!</h2>
-        <div class="flex flex-col gap-2 max-w-xl mx-auto">
-          <button onclick="selectQ3('돈을 계획대로 아껴 써서 정말 뿌듯하고 기분이 좋아요! 🥰')" class="py-3 bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-xl text-left pl-4 text-base font-bold text-purple-900 btn-bounce">🥰 돈을 계획대로 아껴 써서 정말 뿌듯하고 기분이 좋아요!</button>
-          <button onclick="selectQ3('사고 싶었던 물건들을 직접 사서 행복한 한 달이었어요! 🛍️')" class="py-3 bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-xl text-left pl-4 text-base font-bold text-purple-900 btn-bounce">🛍️ 사고 싶었던 물건들을 직접 사서 행복한 한 달이었어요!</button>
-          <button onclick="selectQ3('다음 달에는 저축통장에 돈을 더 많이 모으고 싶어요! 🐷')" class="py-3 bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-xl text-left pl-4 text-base font-bold text-purple-900 btn-bounce">🐷 다음 달에는 저축통장에 돈을 더 많이 모으고 싶어요!</button>
-          <button onclick="selectQ3('생각보다 돈이 부족해서 사고 싶은 걸 못 사 아쉬웠어요. 😢')" class="py-3 bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-xl text-left pl-4 text-base font-bold text-purple-900 btn-bounce">😢 생각보다 돈이 부족해서 사고 싶은 걸 못 사 아쉬웠어요.</button>
-          <button onclick="selectQ3('앞으로는 무작정 쓰지 않고 꼼꼼히 계획을 세울래요! 📝')" class="py-3 bg-purple-50 hover:bg-purple-100 border border-purple-300 rounded-xl text-left pl-4 text-base font-bold text-purple-900 btn-bounce">📝 앞으로는 무작정 쓰지 않고 꼼꼼히 계획을 세울래요!</button>
-        </div>
-      </div>
-
-      <!-- 5단계: 최종 요약 수료증 -->
-      <div id="review-step-final" class="hidden text-center space-y-4">
-        <h2 class="title-font text-3xl text-amber-500">🎉 참 잘했어요! 어린이 경제 박사님 🎉</h2>
-        <div class="bg-yellow-50 p-5 rounded-3xl border-4 border-dashed border-yellow-400 text-left space-y-3 max-w-lg mx-auto shadow-md">
-          <p class="title-font text-xl text-center text-amber-800">📜 나의 한 달 경제 일기 보고서</p>
-          <div class="text-base text-gray-800 space-y-2 pt-2">
-            <div>💰 남겨서 지킨 나의 보물 용돈: <strong id="summary-money" class="text-indigo-600">0원</strong></div>
-            <div>🧐 스스로 찾은 최다 지출 항목: <strong id="summary-q1" class="text-amber-700"></strong></div>
-            <div>💡 나의 소비에 대한 스스로의 평가: <strong id="summary-q2" class="text-green-700"></strong></div>
-            <div class="bg-white p-3 rounded-xl border border-yellow-200 mt-2 italic text-purple-700 font-bold text-center">
-              "<span id="summary-q3"></span>"
+    <div id="game-screen">
+        <div class="bg-white p-4 rounded-2xl mb-4 border-2 border-yellow-200 shadow-inner">
+            <p class="text-center text-lg mb-3">👇 오늘 있었던 일을 버튼으로 눌러보세요!</p>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <button onclick="addRecord('엄마 심부름', 1000, 0)" class="btn-action bg-blue-400 text-white p-2 rounded-xl">🧹 심부름 (+1000원)</button>
+                <button onclick="addRecord('맛있는 사탕', 0, 500)" class="btn-action bg-pink-400 text-white p-2 rounded-xl">🍭 사탕사기 (-500원)</button>
+                <button onclick="addRecord('공책과 연필', 0, 1000)" class="btn-action bg-green-400 text-white p-2 rounded-xl">✏️ 학용품 (-1000원)</button>
+                <button onclick="addRecord('칭찬 용돈', 2000, 0)" class="btn-action bg-yellow-500 text-white p-2 rounded-xl">🌟 칭찬 (+2000원)</button>
             </div>
-          </div>
         </div>
-        <button onclick="location.reload()" class="py-3 px-6 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl title-font text-lg btn-bounce shadow-md">🔄 처음부터 다시 연습하기</button>
-      </div>
 
-   </div>
+        <table class="diary-table mb-4">
+            <thead>
+                <tr>
+                    <th width="15%">날짜</th>
+                    <th width="35%">무엇을 샀나요?</th>
+                    <th width="15%">받은 돈</th>
+                    <th width="15%">쓴 돈</th>
+                    <th width="20%">남은 돈</th>
+                </tr>
+            </thead>
+            <tbody id="ledger-body">
+                </tbody>
+        </table>
 
-   <!-- 토스트 팝업 -->
-   <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-2.5 rounded-2xl shadow-lg text-sm font-bold opacity-0 transition-opacity duration-300 pointer-events-none z-50"></div>
-   
-   <!-- 돌발지출 팝업 모달 -->
-   <div id="emergencyModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4">
-    <div class="bg-white rounded-3xl p-5 max-w-sm w-full shadow-2xl border-4 border-red-400 text-center">
-      <p class="title-font text-4xl mb-2">⚠️</p>
-      <h3 class="title-font text-xl text-red-600 mb-2">돌발 지출 발생!</h3>
-      <p id="emergencyDesc" class="text-gray-700 font-bold text-base mb-3"></p>
-      <p class="title-font text-2xl text-red-600 font-bold mb-4">-1,000원</p>
-      <button onclick="closeEmergency()" class="w-full py-3 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl btn-bounce">확인 (지갑에서 차감)</button>
+        <div class="bg-orange-100 p-4 rounded-2xl border-2 border-orange-300 flex justify-around items-center">
+            <div class="text-xl">💰 받은 돈: <span id="total-income" class="text-blue-600">0</span>원</div>
+            <div class="text-xl">💸 쓴 돈: <span id="total-expense" class="text-red-600">0</span>원</div>
+            <div class="text-xl font-bold">✨ 남은 돈: <span id="total-balance" class="text-orange-700">0</span>원</div>
+        </div>
+
+        <button onclick="showReview()" id="finish-btn" class="hidden w-full mt-6 py-4 bg-orange-500 text-white text-2xl rounded-3xl btn-action">📊 한 달 결산하고 반성하기</button>
     </div>
-   </div>
 
-  </div>
+    <div id="review-screen" class="hidden space-y-6">
+        <h2 class="text-3xl text-center text-orange-600 mb-6">📔 나의 한 달 마음 기록장</h2>
 
-  <script>
-const G = {
-  day: 1, wallet: 0, saving: 0,
-  ledger: [], gameOver: false,
-  totalIncome: 0, totalExpense: 0,
-  spentDetail: { snack: 0, school: 0, toy: 0, emergency: 0 },
-  pendingDistribution: false,
-  emergencyHappened: new Set()
-};
+        <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300">
+            <h3 class="text-2xl mb-4">⭐ 나는 무엇에 돈을 많이 썼을까요? (하나 선택)</h3>
+            <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                <button class="category-btn" onclick="selectCate(this, '간식')">🍰<br>간식</button>
+                <button class="category-btn" onclick="selectCate(this, '장난감')">🧸<br>장난감</button>
+                <button class="category-btn" onclick="selectCate(this, '학용품')">✏️<br>학용품</button>
+                <button class="category-btn" onclick="selectCate(this, '선물')">🎁<br>선물</button>
+                <button class="category-btn" onclick="selectCate(this, '저금')">🐖<br>저금</button>
+                <button class="category-btn" onclick="selectCate(this, '기타')">❓<br>기타</button>
+            </div>
+        </div>
 
-// 초1 눈높이 문방구 아이템 구성
-const spendItems = [
-  { name: '새콤달콤 츄파춥스', cost: 500, emoji: '🍭', category: 'snack' },
-  { name: '말랑말랑 코코젤리', cost: 1000, emoji: '🍬', category: 'snack' },
-  { name: '초코칩 쿠키와 우유', cost: 1500, emoji: '🍪', category: 'snack' },
-  { name: '귀여운 캐릭터 스티커', cost: 1000, emoji: '🎨', category: 'school' },
-  { name: '반짝반짝 연필 세트', cost: 2000, emoji: '✏️', category: 'school' },
-  { name: '폭신폭신 캐릭터 필통', cost: 4000, emoji: '🎒', category: 'school' },
-  { name: '동글동글 뽑기 캡슐', cost: 2000, emoji: '🎁', category: 'toy' },
-  { name: '말랑이 스퀴시 인형', cost: 3000, emoji: '🧸', category: 'toy' },
-  { name: '미니 보드게임 키트', cost: 5000, emoji: '🎲', category: 'toy' }
-];
+        <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300 text-center">
+            <h3 class="text-2xl mb-2">💰 지금 지갑에 남은 돈은?</h3>
+            <div class="text-4xl text-blue-600 underline" id="final-balance-display">0원</div>
+        </div>
 
-const emergencyEvents = [
-  { desc: '📚 학교에 연필을 두고 와서 새로 샀어요!' },
-  { desc: '🥛 급식 우유를 쏟아서 우유를 새로 샀어요!' },
-  { desc: '🚌 버스 카드를 집에 두고 와서 차비를 냈어요!' },
-  { desc: '🎨 미술 준비물 보드를 깜빡해서 다시 문방구에 갔어요!' }
-];
+        <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300">
+            <h3 class="text-2xl mb-4 text-center">💡 나는 합리적으로 소비했나요?</h3>
+            <div class="flex justify-around">
+                <button onclick="selectHappy(this, '좋아요')" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100">
+                    <span class="text-6xl">😊</span>
+                    <span>잘했어요!</span>
+                </button>
+                <button onclick="selectHappy(this, '괜찮아요')" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100">
+                    <span class="text-6xl">😐</span>
+                    <span>괜찮아요!</span>
+                </button>
+                <button onclick="selectHappy(this, '아쉬워요')" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100">
+                    <span class="text-6xl">😢</span>
+                    <span>생각해봐요!</span>
+                </button>
+            </div>
+        </div>
 
-// 기록용 설문 결과 데이터
-let reviewAnswers = { mostSpent: '', isReasonable: '', feeling: '' };
-let spendCart = {};
-const fmt = n => n.toLocaleString() + '원';
+        <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300">
+            <h3 class="text-2xl mb-4">✍️ 한 줄 느낌 고르기</h3>
+            <div class="flex flex-col gap-2" id="feeling-list">
+                </div>
+        </div>
 
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.style.opacity = '1';
-  setTimeout(() => t.style.opacity = '0', 2000);
-}
+        <button onclick="location.reload()" class="w-full py-4 bg-blue-500 text-white text-2xl rounded-3xl btn-action">🔄 처음부터 다시 하기</button>
+    </div>
+</div>
 
-function initGame() {
-  // 시작 금액 지급 (5,000원)
-  G.totalIncome += 5000;
-  addLedger('첫날 시작 보너스 용돈 💵', 5000);
-  showDistPanel(5000);
-  updateUI();
-}
+<script>
+    let day = 1;
+    let records = [];
+    let incomeSum = 0;
+    let expenseSum = 0;
+    let balance = 0;
 
-function updateUI() {
-  document.getElementById('dateDisplay').textContent = `5월 ${G.day}일`;
-  document.getElementById('walletDisplay').textContent = `💰 지갑: ${fmt(G.wallet)}`;
-  document.getElementById('assetWallet').textContent = fmt(G.wallet);
-  document.getElementById('assetSaving').textContent = fmt(G.saving);
+    const feelings = [
+        "🥰 돈을 아껴 써서 뿌듯하고 기분이 좋아요!",
+        "🛍️ 사고 싶은 걸 직접 사서 행복했어요!",
+        "🐖 다음 달에는 저금을 더 많이 하고 싶어요!",
+        "😢 돈이 부족해서 조금 속상했어요.",
+        "📝 앞으로는 계획을 세워서 똑똑하게 쓸래요!"
+    ];
 
-  const hasPending = G.pendingDistribution;
-  document.getElementById('btnChore').disabled = G.gameOver || hasPending;
-  document.getElementById('btnSpend').disabled = G.gameOver || hasPending;
-  document.getElementById('btnNextDay').disabled = G.gameOver || hasPending;
-
-  document.getElementById('pendingBanner').classList.toggle('hidden', !hasPending);
-
-  if (G.day >= 30 && !hasPending) {
-    document.getElementById('btnNextDay').classList.add('hidden');
-    document.getElementById('btnFinalReport').classList.remove('hidden');
-  }
-}
-
-function addLedger(desc, amount) {
-  const balance = G.wallet + G.saving;
-  G.ledger.push({ day: G.day, desc, amount, balance });
-  const row = document.createElement('tr');
-  row.className = `coin-anim border-b border-gray-100 py-1.5 ${amount < 0 ? 'expense-row' : 'income-row'}`;
-  row.innerHTML = `<td class="py-1">5월 ${G.day}일</td><td>${desc}</td><td class="text-right font-bold">${amount >= 0 ? '+' : ''}${fmt(amount)}</td>`;
-  document.getElementById('ledgerBody').appendChild(row);
-  document.querySelector('.ledger-scroll').scrollTop = 99999;
-}
-
-// 분배 관련 로직
-let distAmount = 0, distAlloc = { wallet: 0, saving: 0 };
-
-function showDistPanel(amount) {
-  distAmount = amount;
-  distAlloc = { wallet: 0, saving: 0 };
-  G.pendingDistribution = true;
-  document.getElementById('distAmountLabel').textContent = fmt(amount);
-  updateDistUI();
-  document.getElementById('panelAssets').classList.add('hidden');
-  document.getElementById('panelDistribute').classList.remove('hidden');
-  updateUI();
-}
-
-function adjustDist(pocket, delta) {
-  const sum = distAlloc.wallet + distAlloc.saving;
-  if (delta > 0 && sum + delta > distAmount) return;
-  if (distAlloc[pocket] + delta < 0) return;
-  distAlloc[pocket] += delta;
-  updateDistUI();
-}
-
-function updateDistUI() {
-  document.getElementById('distWallet').textContent = fmt(distAlloc.wallet);
-  document.getElementById('distSaving').textContent = fmt(distAlloc.saving);
-  const remaining = distAmount - distAlloc.wallet - distAlloc.saving;
-  const el = document.getElementById('distRemaining');
-  el.textContent = `남은 금액: ${fmt(remaining)}`;
-  el.className = `text-center py-2 rounded-xl font-bold border-2 ${remaining === 0 ? 'border-green-400 text-green-600' : 'border-red-400 text-red-600'}`;
-  document.getElementById('distConfirmBtn').disabled = remaining !== 0;
-}
-
-function confirmDistribution() {
-  G.wallet += distAlloc.wallet;
-  G.saving += distAlloc.saving;
-  G.pendingDistribution = false;
-  document.getElementById('panelDistribute').classList.add('hidden');
-  document.getElementById('panelAssets').classList.remove('hidden');
-  updateUI();
-  showToast('✅ 주머니에 예쁘게 나눠 담았어요!');
-}
-
-function doChore() {
-  if (G.gameOver || G.pendingDistribution) return;
-  G.totalIncome += 500;
-  addLedger('🧼 엄마 심부름/집안일 돕기', 500);
-  G.wallet += 500;
-  showToast('🧹 집안일을 돕고 500원을 벌었어요!');
-  updateUI();
-}
-
-// 쇼핑몰 관련 로직
-function showSpendPanel() {
-  if (G.gameOver || G.pendingDistribution) return;
-  if (G.wallet === 0) { showToast('😢 내 지갑에 돈이 없어요. 심부름을 해볼까요?'); return; }
-  
-  spendCart = {};
-  spendItems.forEach((_, i) => spendCart[i] = 0);
-  document.getElementById('spendWalletDisplay').textContent = fmt(G.wallet);
-  document.getElementById('spendCartTotal').textContent = fmt(0);
-  
-  const list = document.getElementById('spendItemList');
-  list.innerHTML = '';
-  spendItems.forEach((item, idx) => {
-    const card = document.createElement('div');
-    card.className = 'bg-gray-50 rounded-xl p-2 border border-gray-200 flex items-center justify-between text-xs sm:text-sm';
-    card.innerHTML = `
-      <div>
-        <p class="font-bold text-gray-800">${item.emoji} ${item.name}</p>
-        <p class="text-orange-600 font-bold">${fmt(item.cost)}</p>
-      </div>
-      <div class="flex items-center gap-2">
-        <button onclick="adjustSpendQty(${idx},-1)" class="w-7 h-7 bg-orange-200 rounded font-bold">-</button>
-        <span id="qty-${idx}" class="w-4 text-center font-bold">0</span>
-        <button onclick="adjustSpendQty(${idx},1)" class="w-7 h-7 bg-orange-200 rounded font-bold">+</button>
-      </div>`;
-    list.appendChild(card);
-  });
-  
-  document.getElementById('panelAssets').classList.add('hidden');
-  document.getElementById('panelSpend').classList.remove('hidden');
-}
-
-function adjustSpendQty(idx, delta) {
-  const newQty = Math.max(0, spendCart[idx] + delta);
-  let total = 0;
-  Object.entries(spendCart).forEach(([i, q]) => {
-    total += (Number(i) === idx ? newQty : q) * spendItems[i].cost;
-  });
-  if (total > G.wallet) { showToast('😢 내 지갑 속 돈이 모자라요!'); return; }
-  spendCart[idx] = newQty;
-  document.getElementById(`qty-${idx}`).textContent = newQty;
-  document.getElementById('spendCartTotal').textContent = fmt(total);
-}
-
-function checkout() {
-  let totalSpent = 0;
-  Object.entries(spendCart).forEach(([idx, qty]) => {
-    if (qty > 0) {
-      const item = spendItems[idx];
-      const cost = qty * item.cost;
-      totalSpent += cost;
-      G.spentDetail[item.category] += cost;
-      addLedger(`${item.emoji} ${item.name} (${qty}개)`, -cost);
+    // 테이블 초기화 (10줄 공백 칸)
+    function initTable() {
+        const body = document.getElementById('ledger-body');
+        body.innerHTML = '';
+        for (let i = 0; i < 10; i++) {
+            const row = `<tr>
+                <td>${records[i] ? '5 / ' + records[i].day : ''}</td>
+                <td>${records[i] ? records[i].desc : ''}</td>
+                <td class="text-blue-500">${records[i] && records[i].income > 0 ? records[i].income.toLocaleString() : ''}</td>
+                <td class="text-red-500">${records[i] && records[i].expense > 0 ? records[i].expense.toLocaleString() : ''}</td>
+                <td class="font-bold">${records[i] ? records[i].bal.toLocaleString() : ''}</td>
+            </tr>`;
+            body.innerHTML += row;
+        }
     }
-  });
-  if (totalSpent === 0) { showToast('🛒 바구니에 물건을 먼저 담아주세요!'); return; }
-  G.wallet -= totalSpent;
-  G.totalExpense += totalSpent;
-  showToast(`🛍️ ${fmt(totalSpent)} 결제 완료!`);
-  closeSpendPanel();
-}
 
-function closeSpendPanel() {
-  document.getElementById('panelSpend').classList.add('hidden');
-  document.getElementById('panelAssets').classList.remove('hidden');
-  updateUI();
-}
+    // 기록 추가
+    function addRecord(desc, inc, exp) {
+        if (records.length >= 10) {
+            alert("기입장이 꽉 찼어요! 결산을 시작해봐요.");
+            return;
+        }
+        
+        incomeSum += inc;
+        expenseSum += exp;
+        balance = incomeSum - expenseSum;
 
-// 하루 지남 로직
-function nextDay() {
-  if (G.gameOver || G.pendingDistribution) return;
-  if (G.day >= 30) return;
-  G.day++;
+        records.push({ day: day, desc: desc, income: inc, expense: exp, bal: balance });
+        
+        day++;
+        updateUI();
+        initTable();
 
-  // 정기 용돈날 배정 (7일 주기)
-  if ([8, 15, 22].includes(G.day)) {
-    G.totalIncome += 3000;
-    addLedger('매주 받는 정기 용돈 💵', 3000);
-    showDistPanel(3000);
-    return;
-  }
+        if (records.length >= 5) {
+            document.getElementById('finish-btn').classList.remove('hidden');
+        }
+    }
 
-  // 돌발지출 확률 (20% 확률)
-  if (Math.random() < 0.20) {
-    const ev = emergencyEvents[Math.floor(Math.random() * emergencyEvents.length)];
-    G.spentDetail.emergency += 1000;
-    G.totalExpense += 1000;
-    
-    // 지갑에서 먼저 깎고 모자라면 저축통장에서 감안
-    if (G.wallet >= 1000) { G.wallet -= 1000; }
-    else { const left = 1000 - G.wallet; G.wallet = 0; G.saving = Math.max(0, G.saving - left); }
-    
-    document.getElementById('emergencyDesc').textContent = ev.desc;
-    document.getElementById('emergencyModal').classList.remove('hidden');
-    addLedger('🚨 돌발 상황 발생 지출', -1000);
-    return;
-  }
+    function updateUI() {
+        document.getElementById('current-day').innerText = day;
+        document.getElementById('total-income').innerText = incomeSum.toLocaleString();
+        document.getElementById('total-expense').innerText = expenseSum.toLocaleString();
+        document.getElementById('total-balance').innerText = balance.toLocaleString();
+    }
 
-  updateUI();
-}
+    // 결산 화면 이동
+    function showReview() {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('review-screen').classList.remove('hidden');
+        document.getElementById('final-balance-display').innerText = balance.toLocaleString() + "원";
+        
+        const feelList = document.getElementById('feeling-list');
+        feelList.innerHTML = '';
+        feelings.forEach(f => {
+            feelList.innerHTML += `<button onclick="selectFeel(this)" class="text-left p-3 border-2 border-gray-100 rounded-xl hover:bg-yellow-50">${f}</button>`;
+        });
+    }
 
-function closeEmergency() {
-  document.getElementById('emergencyModal').classList.add('hidden');
-  updateUI();
-}
+    // 선택 기능들
+    function selectCate(btn, name) {
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
 
-// -----------------------------------------
-// [새로 이식된 영역] 1달 결산서 및 3단계 반성 플로우
-// -----------------------------------------
-function showReportFlow() {
-  G.gameOver = true;
-  // 기존 게임 레이아웃을 완전히 가려 아이들이 반성에 집중하게 함
-  document.getElementById('main-game-layout').classList.add('hidden');
-  document.getElementById('actionBar').classList.add('hidden');
-  document.getElementById('panelReviewFlow').classList.remove('hidden');
-  
-  // 데이터 연동
-  const totalMoney = G.wallet + G.saving;
-  document.getElementById('report-total-money').textContent = fmt(totalMoney);
-  document.getElementById('report-wallet-money').textContent = fmt(G.wallet);
-  document.getElementById('report-saving-money').textContent = fmt(G.saving);
-  
-  document.getElementById('report-spent-snack').textContent = fmt(G.spentDetail.snack);
-  document.getElementById('report-spent-school').textContent = fmt(G.spentDetail.school);
-  document.getElementById('report-spent-toy').textContent = fmt(G.spentDetail.toy);
-  document.getElementById('report-spent-emergency').textContent = fmt(G.spentDetail.emergency);
-}
+    function selectHappy(btn, name) {
+        document.querySelectorAll('#review-screen .flex button').forEach(b => b.style.opacity = '0.5');
+        btn.style.opacity = '1';
+    }
 
-function changeReviewStep(stepNum) {
-  // 스텝 화면 토글링 제어
-  document.getElementById('review-step-report').classList.add('hidden');
-  document.getElementById('review-step-q1').classList.add('hidden');
-  document.getElementById('review-step-q2').classList.add('hidden');
-  document.getElementById('review-step-q3').classList.add('hidden');
-  
-  if (stepNum === 2) document.getElementById('review-step-q1').classList.remove('hidden');
-  if (stepNum === 3) document.getElementById('review-step-q2').classList.remove('hidden');
-  if (stepNum === 4) document.getElementById('review-step-q3').classList.remove('hidden');
-}
+    function selectFeel(btn) {
+        document.querySelectorAll('#feeling-list button').forEach(b => b.classList.remove('bg-yellow-100', 'border-yellow-400'));
+        btn.classList.add('bg-yellow-100', 'border-yellow-400');
+    }
 
-function selectQ1(answerText) {
-  reviewAnswers.mostSpent = answerText;
-  changeReviewStep(3);
-}
+    initTable();
+</script>
 
-function selectQ2(isYes) {
-  reviewAnswers.isReasonable = (isYes === 'yes') 
-    ? "👍 필요한 곳에 똑똑하게 잘 썼다고 생각함" 
-    : "👎 아쉽지만 다음엔 더 아껴 쓰겠다고 다짐함";
-  changeReviewStep(4);
-}
-
-function selectQ3(feelingText) {
-  reviewAnswers.feeling = feelingText;
-  
-  // 최종 결과 창 세팅
-  document.getElementById('review-step-q3').classList.add('hidden');
-  document.getElementById('review-step-final').classList.remove('hidden');
-  
-  document.getElementById('summary-money').textContent = fmt(G.wallet + G.saving);
-  document.getElementById('summary-q1').textContent = reviewAnswers.mostSpent;
-  document.getElementById('summary-q2').textContent = reviewAnswers.isReasonable;
-  document.getElementById('summary-q3').textContent = reviewAnswers.feeling;
-}
-
-// 게임 시작 실행
-window.onload = initGame;
-  </script>
- </body>
+</body>
 </html>
