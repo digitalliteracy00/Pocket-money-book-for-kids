@@ -21,6 +21,7 @@
             border-radius: 40px;
             padding: 20px;
             box-shadow: 0 10px 0 #e6b800;
+            position: relative;
         }
         .diary-table {
             width: 100%;
@@ -61,7 +62,16 @@
             border-color: #fbbf24;
             transform: scale(1.05);
         }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
+        
+        /* 커스텀 모달 스타일 */
+        .quiz-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
@@ -81,10 +91,10 @@
         <div class="bg-white p-4 rounded-2xl mb-4 border-2 border-yellow-200 shadow-inner">
             <p class="text-center text-lg mb-3 text-orange-500">👇 오늘 있었던 일을 누르고 [남은 돈]을 계산해 보세요!</p>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <button onclick="askBalance('엄마 심부름', 1000, 0)" class="btn-action bg-blue-400 text-white p-2 rounded-xl text-lg">🧹 심부름 (+1000원)</button>
-                <button onclick="askBalance('맛있는 사탕', 0, 500)" class="btn-action bg-pink-400 text-white p-2 rounded-xl text-lg">🍭 사탕사기 (-500원)</button>
-                <button onclick="askBalance('공책과 연필', 0, 1000)" class="btn-action bg-green-400 text-white p-2 rounded-xl text-lg">✏️ 학용품 (-1000원)</button>
-                <button onclick="askBalance('칭찬 용돈', 2000, 0)" class="btn-action bg-yellow-500 text-white p-2 rounded-xl text-lg">🌟 칭찬 (+2000원)</button>
+                <button onclick="openQuiz('엄마 심부름', 1000, 0)" class="btn-action bg-blue-400 text-white p-2 rounded-xl text-lg">🧹 심부름 (+1000원)</button>
+                <button onclick="openQuiz('맛있는 사탕', 0, 500)" class="btn-action bg-pink-400 text-white p-2 rounded-xl text-lg">🍭 사탕사기 (-500원)</button>
+                <button onclick="openQuiz('공책과 연필', 0, 1000)" class="btn-action bg-green-400 text-white p-2 rounded-xl text-lg">✏️ 학용품 (-1000원)</button>
+                <button onclick="openQuiz('칭찬 용돈', 2000, 0)" class="btn-action bg-yellow-500 text-white p-2 rounded-xl text-lg">🌟 칭찬 (+2000원)</button>
             </div>
         </div>
 
@@ -98,8 +108,7 @@
                     <th width="20%">남은 돈</th>
                 </tr>
             </thead>
-            <tbody id="ledger-body">
-                </tbody>
+            <tbody id="ledger-body"></tbody>
         </table>
 
         <div class="bg-orange-100 p-4 rounded-2xl border-2 border-orange-300 flex justify-around items-center">
@@ -113,7 +122,6 @@
 
     <div id="review-screen" class="hidden space-y-6">
         <h2 class="text-3xl text-center text-orange-600 mb-6">📔 나의 한 달 마음 기록장</h2>
-
         <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300">
             <h3 class="text-2xl mb-4">⭐ 나는 무엇에 돈을 많이 썼을까요? (하나 선택)</h3>
             <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
@@ -125,36 +133,47 @@
                 <button class="category-btn" onclick="selectCate(this)">❓<br>기타</button>
             </div>
         </div>
-
         <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300 text-center">
             <h3 class="text-2xl mb-2">💰 지금 지갑에 진짜 남은 돈은?</h3>
             <div class="text-4xl text-blue-600 underline" id="final-balance-display">0원</div>
         </div>
-
         <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300">
             <h3 class="text-2xl mb-4 text-center">💡 나는 합리적으로 소비했나요?</h3>
             <div class="flex justify-around">
-                <button onclick="selectHappy(this)" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100">
-                    <span class="text-6xl">😊</span>
-                    <span>잘했어요!</span>
-                </button>
-                <button onclick="selectHappy(this)" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100">
-                    <span class="text-6xl">😐</span>
-                    <span>괜찮아요!</span>
-                </button>
-                <button onclick="selectHappy(this)" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100">
-                    <span class="text-6xl">😢</span>
-                    <span>생각해봐요!</span>
-                </button>
+                <button onclick="selectHappy(this)" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100"><span class="text-6xl">😊</span><span>잘했어요!</span></button>
+                <button onclick="selectHappy(this)" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100"><span class="text-6xl">😐</span><span>괜찮아요!</span></button>
+                <button onclick="selectHappy(this)" class="flex flex-col items-center gap-2 opacity-50 hover:opacity-100"><span class="text-6xl">😢</span><span>생각해봐요!</span></button>
             </div>
         </div>
-
         <div class="bg-white p-5 rounded-3xl border-2 border-yellow-300">
             <h3 class="text-2xl mb-4">✍️ 한 줄 느낌 고르기</h3>
             <div class="flex flex-col gap-2" id="feeling-list"></div>
         </div>
-
         <button onclick="location.reload()" class="w-full py-4 bg-blue-500 text-white text-2xl rounded-3xl btn-action">🔄 처음부터 다시 하기</button>
+    </div>
+</div>
+
+<div id="quiz-modal" class="quiz-overlay hidden">
+    <div class="bg-white p-6 rounded-3xl border-4 border-yellow-400 max-w-sm w-full shadow-2xl text-center mx-4 relative">
+        <button onclick="closeQuiz()" class="absolute top-3 right-4 text-2xl text-gray-400 hover:text-black">✕</button>
+        <h3 class="text-2xl text-orange-500 mb-2">❓ 남은 돈은 얼마일까요?</h3>
+        <div id="quiz-question" class="bg-yellow-50 p-3 rounded-xl text-lg mb-4 border border-yellow-200">
+            </div>
+        
+        <div class="mb-4">
+            <input type="text" id="quiz-input" readonly class="w-full text-center text-3xl p-2 bg-gray-100 border-2 border-orange-300 rounded-xl font-bold text-orange-600" placeholder="0">
+            <span class="text-xl inline-block mt-1">원</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 mb-4">
+            <button onclick="pressNum(1000)" class="bg-gray-200 p-2 rounded-xl text-lg font-bold">+1000</button>
+            <button onclick="pressNum(500)" class="bg-gray-200 p-2 rounded-xl text-lg font-bold">+500</button>
+            <button onclick="pressNum(100)" class="bg-gray-200 p-2 rounded-xl text-lg font-bold">+100</button>
+            <button onclick="pressNum(0)" class="bg-orange-100 p-2 rounded-xl text-lg font-bold col-span-2 text-orange-700">지우기</button>
+            <button onclick="pressNum(-1)" class="bg-gray-300 p-2 rounded-xl text-lg font-bold">← 하나 지우기</button>
+        </div>
+
+        <button onclick="checkAnswer()" class="w-full py-3 bg-orange-500 text-white text-xl rounded-2xl btn-action">정답 제출하기! 🚀</button>
     </div>
 </div>
 
@@ -163,7 +182,10 @@
     let records = [];
     let incomeSum = 0;
     let expenseSum = 0;
-    let currentBalance = 0; // 현재 잔액 관리
+    let currentBalance = 0; 
+    
+    // 현재 진행 중인 퀴즈 데이터 저장용
+    let currentQuiz = { desc: '', inc: 0, exp: 0, answer: 0 };
 
     const feelings = [
         "🥰 돈을 아껴 써서 뿌듯하고 기분이 좋아요!",
@@ -173,5 +195,138 @@
         "📝 앞으로는 계획을 세워서 똑똑하게 쓸래요!"
     ];
 
-    // 표 빈칸 10줄 그리기
-    function initTable
+    function initTable() {
+        const body = document.getElementById('ledger-body');
+        body.innerHTML = '';
+        for (let i = 0; i < 10; i++) {
+            const row = `<tr>
+                <td>${records[i] ? '5 / ' + records[i].day : ''}</td>
+                <td>${records[i] ? records[i].desc : ''}</td>
+                <td class="text-blue-500">${records[i] && records[i].income > 0 ? records[i].income.toLocaleString() + '원' : ''}</td>
+                <td class="text-red-500">${records[i] && records[i].expense > 0 ? records[i].expense.toLocaleString() + '원' : ''}</td>
+                <td class="font-bold text-orange-600">${records[i] ? records[i].bal.toLocaleString() + '원' : ''}</td>
+            </tr>`;
+            body.innerHTML += row;
+        }
+    }
+
+    // 퀴즈 모달 열기
+    function openQuiz(desc, inc, exp) {
+        if (records.length >= 10) {
+            alert("기입장이 꽉 찼어요! 결산을 시작해봐요.");
+            return;
+        }
+
+        let targetAns = currentBalance + inc - exp;
+        if (targetAns < 0) {
+            alert("❌ 지갑에 돈이 부족해서 살 수 없어요! 먼저 용돈을 벌어보세요.");
+            return;
+        }
+
+        // 퀴즈 데이터 셋팅
+        currentQuiz = { desc: desc, inc: inc, exp: exp, answer: targetAns };
+        
+        // 질문 텍스트 생성
+        let qText = `지갑에 원래 <b>${currentBalance.toLocaleString()}원</b>이 있었어요.<br>`;
+        if (inc > 0) {
+            qText += `💰 <b>${desc}</b>으로 <b>+${inc.toLocaleString()}원</b>이 더 생겼네요!`;
+        } else {
+            qText += `💸 <b>${desc}</b>으로 <b>-${exp.toLocaleString()}원</b>을 썼어요!`;
+        }
+
+        document.getElementById('quiz-question').innerHTML = qText;
+        document.getElementById('quiz-input').value = '0';
+        document.getElementById('quiz-modal').classList.remove('hidden');
+    }
+
+    function closeQuiz() {
+        document.getElementById('quiz-modal').classList.add('hidden');
+    }
+
+    // 숫자 패드 버튼 조작
+    function pressNum(val) {
+        let input = document.getElementById('quiz-input');
+        let currentVal = parseInt(input.value) || 0;
+
+        if (val === 0) {
+            input.value = '0'; // 전체 지우기
+        } else if (val === -1) {
+            // 한 단계 뒤로 되돌리기 (예: 1500 -> 1000, 500 -> 0)
+            if (currentVal >= 1000) input.value = currentVal - 1000;
+            else if (currentVal >= 500) input.value = currentVal - 500;
+            else if (currentVal >= 100) input.value = currentVal - 100;
+            else input.value = '0';
+        } else {
+            input.value = currentVal + val;
+        }
+    }
+
+    // 답 체크하기
+    function checkAnswer() {
+        let userAns = parseInt(document.getElementById('quiz-input').value) || 0;
+
+        if (userAns === currentQuiz.answer) {
+            alert("🎉 딩동댕! 정답이에요! 직접 계산도 참 잘하네요! 👍");
+        } else {
+            alert(`😢 앗, 틀렸어요! 정답은 [ ${currentQuiz.answer.toLocaleString()}원 ] 입니다. 다음 번에 맞추면 되죠! 함께 적어봐요.`);
+        }
+
+        addRecord(currentQuiz.desc, currentQuiz.inc, currentQuiz.exp, currentQuiz.answer);
+        closeQuiz();
+    }
+
+    function addRecord(desc, inc, exp, finalBal) {
+        incomeSum += inc;
+        expenseSum += exp;
+        currentBalance = finalBal;
+
+        records.push({ day: day, desc: desc, income: inc, expense: exp, bal: currentBalance });
+        
+        day++;
+        updateUI();
+        initTable();
+
+        if (records.length >= 5) {
+            document.getElementById('finish-btn').classList.remove('hidden');
+        }
+    }
+
+    function updateUI() {
+        document.getElementById('current-day').innerText = day;
+        document.getElementById('total-income').innerText = incomeSum.toLocaleString();
+        document.getElementById('total-expense').innerText = expenseSum.toLocaleString();
+        document.getElementById('total-balance').innerText = currentBalance.toLocaleString();
+    }
+
+    function showReview() {
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('review-screen').classList.remove('hidden');
+        document.getElementById('final-balance-display').innerText = currentBalance.toLocaleString() + "원";
+        
+        const feelList = document.getElementById('feeling-list');
+        feelList.innerHTML = '';
+        feelings.forEach(f => {
+            feelList.innerHTML += `<button onclick="selectFeel(this)" class="text-left p-3 border-2 border-gray-100 rounded-xl hover:bg-yellow-50 text-lg">${f}</button>`;
+        });
+    }
+
+    function selectCate(btn) {
+        document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    }
+
+    function selectHappy(btn) {
+        document.querySelectorAll('#review-screen .flex button').forEach(b => b.style.opacity = '0.5');
+        btn.style.opacity = '1';
+    }
+
+    function selectFeel(btn) {
+        document.querySelectorAll('#feeling-list button').forEach(b => b.classList.remove('bg-yellow-100', 'border-yellow-400'));
+        btn.classList.add('bg-yellow-100', 'border-yellow-400');
+    }
+
+    initTable();
+</script>
+
+</body>
+</html>
